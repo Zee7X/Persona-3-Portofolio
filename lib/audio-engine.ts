@@ -226,3 +226,53 @@ export async function unlockAudioEngine() {
     } catch (_) {}
   }
 }
+
+// --------------------------------------------------------------------------
+// Background Music (Persona 3 Reload - Full Moon, Full Life)
+// --------------------------------------------------------------------------
+let bgmAudio: HTMLAudioElement | null = null;
+let isBgmPlaying = false;
+const BGM_DEFAULT_VOLUME = 0.22; // Comfortable subtle ambient volume
+
+export function playBGM(volume = BGM_DEFAULT_VOLUME) {
+  if (typeof window === "undefined") return;
+  if (!bgmAudio) {
+    bgmAudio = new Audio("/sfx/bgm.mp3");
+    bgmAudio.loop = true;
+    bgmAudio.preload = "auto";
+  }
+  bgmAudio.volume = volume;
+  const playPromise = bgmAudio.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        isBgmPlaying = true;
+      })
+      .catch(() => {});
+  }
+}
+
+export function pauseBGM() {
+  if (bgmAudio && !bgmAudio.paused) {
+    bgmAudio.pause();
+    isBgmPlaying = false;
+  }
+}
+
+export function toggleBGM(): boolean {
+  if (!bgmAudio) {
+    playBGM();
+    return true;
+  }
+  if (bgmAudio.paused) {
+    playBGM();
+    return true;
+  } else {
+    pauseBGM();
+    return false;
+  }
+}
+
+export function isBGMActive(): boolean {
+  return bgmAudio ? !bgmAudio.paused : false;
+}

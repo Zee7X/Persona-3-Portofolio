@@ -17,7 +17,10 @@ import {
   playSFX,
   playCloseMenuSFX,
   playMenuUtamaSFX,
-  unlockAudioEngine
+  unlockAudioEngine,
+  playBGM,
+  toggleBGM,
+  isBGMActive
 } from "@/lib/audio-engine";
 import {
   executeWavyReveal,
@@ -35,6 +38,7 @@ export default function Persona3Portfolio() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isBgmPlaying, setIsBgmPlaying] = useState(true);
 
   const [selectedMenuIndex, setSelectedMenuIndex] = useState(0);
   const [activeScreen, setActiveScreen] = useState<
@@ -97,6 +101,8 @@ export default function Persona3Portfolio() {
     unlockAudioEngine();
     setIsStarted(true);
     playMenuUtamaSFX(true);
+    playBGM(0.20);
+    setIsBgmPlaying(true);
 
     if (introVideoRef.current) {
       introVideoRef.current.currentTime = 0;
@@ -294,6 +300,14 @@ export default function Persona3Portfolio() {
         if (e.key === "Enter" || e.key === " ") {
           handleEnterExperience();
         }
+        return;
+      }
+
+      // Global BGM Toggle Shortcut (M key)
+      if (e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        const nextState = toggleBGM();
+        setIsBgmPlaying(nextState);
         return;
       }
 
@@ -670,9 +684,16 @@ export default function Persona3Portfolio() {
               <div className="control-key">ENTER</div>
               <span className="control-text">Confirm</span>
             </div>
-            <div className="control-item">
-              <div className="control-key">ESC</div>
-              <span className="control-text">Close</span>
+            <div
+              className="control-item cursor-pointer"
+              onClick={() => {
+                const nextState = toggleBGM();
+                setIsBgmPlaying(nextState);
+              }}
+              title="Toggle Music (M)"
+            >
+              <div className="control-key">M</div>
+              <span className="control-text">{isBgmPlaying ? "BGM ON" : "BGM OFF"}</span>
             </div>
           </div>
         </div>
