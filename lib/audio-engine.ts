@@ -52,6 +52,22 @@ export function initAudioEngine() {
     menuUtamaAudioPool.push(c);
   }
 
+  // Pre-instantiate and buffer BGM early so it starts with 0ms delay
+  if (!bgmAudio) {
+    bgmAudio = new Audio("/sfx/bgm.mp3");
+    bgmAudio.loop = true;
+    bgmAudio.preload = "auto";
+    bgmAudio.volume = BGM_DEFAULT_VOLUME;
+    bgmAudio.addEventListener("play", () => {
+      isBgmPlaying = true;
+      notifyBGMState(true);
+    });
+    bgmAudio.addEventListener("pause", () => {
+      isBgmPlaying = false;
+      notifyBGMState(false);
+    });
+  }
+
   loadAudioBuffers();
 
   const unlock = () => {
@@ -232,39 +248,94 @@ export async function unlockAudioEngine() {
 // --------------------------------------------------------------------------
 let bgmAudio: HTMLAudioElement | null = null;
 let isBgmPlaying = false;
+let userWantsBgm = false;
+let bgmListeners: Array<(isPlaying: boolean) => void> = [];
 const BGM_DEFAULT_VOLUME = 0.22; // Comfortable subtle ambient volume
+
+function notifyBGMState(isPlaying: boolean) {
+  bgmListeners.forEach((cb) => {
+    try {
+      cb(isPlaying);
+    } catch (_) {}
+  });
+}
+
+export function subscribeBGMState(cb: (isPlaying: boolean) => void) {
+  bgmListeners.push(cb);
+  cb(isBGMActive());
+  return () => {
+    bgmListeners = bgmListeners.filter((l) => l !== cb);
+  };
+}
 
 export function playBGM(volume = BGM_DEFAULT_VOLUME) {
   if (typeof window === "undefined") return;
+  userWantsBgm = true;
+
   if (!bgmAudio) {
     bgmAudio = new Audio("/sfx/bgm.mp3");
     bgmAudio.loop = true;
     bgmAudio.preload = "auto";
+    bgmAudio.addEventListener("play", () => {
+      isBgmPlaying = true;
+      notifyBGMState(true);
+    });
+    bgmAudio.addEventListener("pause", () => {
+      isBgmPlaying = false;
+      notifyBGMState(false);
+    });
   }
   bgmAudio.volume = volume;
-  const playPromise = bgmAudio.play();
-  if (playPromise !== undefined) {
-    playPromise
-      .then(() => {
-        isBgmPlaying = true;
-      })
-      .catch(() => {});
-  }
+
+  const tryPlay = () => {
+    if (!userWantsBgm || !bgmAudio) return;
+    const playPromise = bgmAudio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          isBgmPlaying = true;
+          notifyBGMState(true);
+        })
+        .catch(() => {
+          // If browser blocked autoplay due to missing user gesture,
+          // attach a one-time listener to the very first user interaction
+          isBgmPlaying = false;
+          notifyBGMState(false);
+          const resumeOnFirstInteraction = () => {
+            if (userWantsBgm && bgmAudio && bgmAudio.paused) {
+              bgmAudio
+                .play()
+                .then(() => {
+                  isBgmPlaying = true;
+                  notifyBGMState(true);
+                })
+                .catch(() => {});
+            }
+            window.removeEventListener("pointerdown", resumeOnFirstInteraction);
+            window.removeEventListener("keydown", resumeOnFirstInteraction);
+            window.removeEventListener("touchstart", resumeOnFirstInteraction);
+          };
+          window.addEventListener("pointerdown", resumeOnFirstInteraction, { passive: true });
+          window.addEventListener("keydown", resumeOnFirstInteraction, { passive: true });
+          window.addEventListener("touchstart", resumeOnFirstInteraction, { passive: true });
+        });
+    }
+  };
+
+  tryPlay();
 }
 
 export function pauseBGM() {
+  userWantsBgm = false;
   if (bgmAudio && !bgmAudio.paused) {
     bgmAudio.pause();
     isBgmPlaying = false;
+    notifyBGMState(false);
   }
 }
 
 export function toggleBGM(): boolean {
-  if (!bgmAudio) {
-    playBGM();
-    return true;
-  }
-  if (bgmAudio.paused) {
+  if (!bgmAudio || bgmAudio.paused) {
     playBGM();
     return true;
   } else {

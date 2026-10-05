@@ -20,7 +20,8 @@ import {
   unlockAudioEngine,
   playBGM,
   toggleBGM,
-  isBGMActive
+  isBGMActive,
+  subscribeBGMState
 } from "@/lib/audio-engine";
 import {
   executeWavyReveal,
@@ -49,8 +50,7 @@ export default function Persona3Portfolio() {
   const [currentSkillTab, setCurrentSkillTab] = useState("backend");
   const [selectedContactIndex, setSelectedContactIndex] = useState(0);
 
-  // Video Refs
-  const introVideoRef = useRef<HTMLVideoElement | null>(null);
+  // Video Refs (Only loop video on main screen to maximize performance)
   const loopVideoRef = useRef<HTMLVideoElement | null>(null);
   const projectVideoRef = useRef<HTMLVideoElement | null>(null);
   const skillVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -67,10 +67,14 @@ export default function Persona3Portfolio() {
   const isTransitioningRef = useRef(false);
 
   // --------------------------------------------------------------------------
-  // Loading Progress Sequence
+  // Loading Progress Sequence & BGM Subscription
   // --------------------------------------------------------------------------
   useEffect(() => {
     initAudioEngine();
+
+    const unsubBGM = subscribeBGMState((playing) => {
+      setIsBgmPlaying(playing);
+    });
 
     let current = 0;
     let animId: number;
@@ -91,6 +95,7 @@ export default function Persona3Portfolio() {
     }, 150);
 
     return () => {
+      unsubBGM();
       clearTimeout(timer);
       cancelAnimationFrame(animId);
     };
@@ -102,47 +107,27 @@ export default function Persona3Portfolio() {
     setIsStarted(true);
     playMenuUtamaSFX(true);
     playBGM(0.20);
-    setIsBgmPlaying(true);
 
-    if (introVideoRef.current) {
-      introVideoRef.current.currentTime = 0;
-      introVideoRef.current.muted = true;
-      introVideoRef.current.play().catch(() => {
-        // Fallback directly to loop if autoplay with video fails
-        if (loopVideoRef.current) {
-          loopVideoRef.current.play().catch(() => {});
-        }
-      });
+    if (loopVideoRef.current) {
+      loopVideoRef.current.currentTime = 0;
+      loopVideoRef.current.muted = true;
+      loopVideoRef.current.play().catch(() => {});
     }
   }, [isStarted]);
 
-  // Fallback auto-entry if user does not click after loading reaches 100%
+  // Once loading completes, any pointerdown starts the portfolio with full autoplay clearance
   useEffect(() => {
-    if (isLoaded && !isStarted) {
-      const fallbackTimer = setTimeout(() => {
-        handleEnterExperience();
-      }, 3500);
-      return () => clearTimeout(fallbackTimer);
-    }
-  }, [isLoaded, isStarted, handleEnterExperience]);
+    if (!isLoaded || isStarted) return;
 
-  // --------------------------------------------------------------------------
-  // Video Intro -> Loop Switcher
-  // --------------------------------------------------------------------------
-  const handleIntroVideoEnded = () => {
-    if (introVideoRef.current) {
-      introVideoRef.current.classList.add("fade-out");
-      setTimeout(() => {
-        if (introVideoRef.current) {
-          introVideoRef.current.style.display = "none";
-        }
-      }, 300);
-    }
-    if (loopVideoRef.current) {
-      loopVideoRef.current.currentTime = 0;
-      loopVideoRef.current.play().catch(() => {});
-    }
-  };
+    const onStartPointer = () => {
+      handleEnterExperience();
+    };
+
+    window.addEventListener("pointerdown", onStartPointer, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", onStartPointer);
+    };
+  }, [isLoaded, isStarted, handleEnterExperience]);
 
   // --------------------------------------------------------------------------
   // Subpage Navigation & Transitions
@@ -297,7 +282,8 @@ export default function Persona3Portfolio() {
       unlockAudioEngine();
 
       if (!isStarted) {
-        if (e.key === "Enter" || e.key === " ") {
+        if (e.key !== "Tab") {
+          e.preventDefault();
           handleEnterExperience();
         }
         return;
@@ -516,19 +502,7 @@ export default function Persona3Portfolio() {
       <main className="p3r-main">
         <div className="p3r-global-vignette" aria-hidden="true"></div>
 
-        {/* Video Backdrops */}
-        <video
-          ref={introVideoRef}
-          id="background-video-intro"
-          className="background-video bg-video-intro"
-          src="/assets/bg-intro.mp4"
-          poster="/assets/posters/bg-loop.webp"
-          muted
-          playsInline
-          preload="auto"
-          onEnded={handleIntroVideoEnded}
-          onError={handleIntroVideoEnded}
-        ></video>
+        {/* Main Background Video Loop */}
         <video
           ref={loopVideoRef}
           id="background-video-loop"
@@ -719,7 +693,7 @@ export default function Persona3Portfolio() {
             loop
             muted
             playsInline
-            preload="auto"
+            preload="none"
           >
             <source src="/assets/skills-bg.mp4" type="video/mp4" />
           </video>
@@ -839,7 +813,7 @@ export default function Persona3Portfolio() {
             loop
             muted
             playsInline
-            preload="auto"
+            preload="none"
           >
             <source src="/assets/makoto-wallpaper.mp4" type="video/mp4" />
           </video>
@@ -996,7 +970,7 @@ export default function Persona3Portfolio() {
             loop
             muted
             playsInline
-            preload="auto"
+            preload="none"
           >
             <source src="/assets/about-bg.mp4" type="video/mp4" />
           </video>
@@ -1100,7 +1074,7 @@ export default function Persona3Portfolio() {
             loop
             muted
             playsInline
-            preload="auto"
+            preload="none"
           >
             <source src="/assets/contact-bg.mp4" type="video/mp4" />
           </video>

@@ -191,16 +191,6 @@ body.project-screen-active .side-number {
   }
 }
 
-.bg-video-intro {
-  z-index: 2;
-  opacity: 1;
-  transition: opacity 0.3s ease-out;
-}
-
-.bg-video-intro.fade-out {
-  opacity: 0;
-}
-
 .bg-video-loop {
   z-index: 1;
   opacity: 1;
