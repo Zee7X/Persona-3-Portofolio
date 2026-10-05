@@ -570,6 +570,10 @@ export default function Persona3Portfolio() {
                     className="option-hitbox"
                     data-index={index}
                     aria-label={opt.name}
+                    style={{
+                      transform: `translate(${opt.offsetX}px, ${opt.offsetY}px) rotate(${opt.rotation}deg)`,
+                      transformOrigin: "25% center"
+                    }}
                     onMouseEnter={() => handleOptionSelect(index)}
                     onClick={(e) => handleOptionConfirm(index, e)}
                   />
@@ -582,6 +586,8 @@ export default function Persona3Portfolio() {
                     style={{
                       transform: `translate(${opt.offsetX}px, ${opt.offsetY}px) rotate(${opt.rotation}deg)`
                     }}
+                    onMouseEnter={() => handleOptionSelect(index)}
+                    onClick={(e) => handleOptionConfirm(index, e)}
                   >
                     <defs>
                       <mask

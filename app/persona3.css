@@ -480,11 +480,11 @@ body.project-screen-active .side-number {
 
 .option-hitbox {
   position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 100%;
-  height: 4.4rem;
+  left: 50px;
+  top: 30px;
+  width: 750px;
+  max-width: 80vw;
+  height: 140px;
   outline: none;
   pointer-events: auto;
   cursor: pointer;
@@ -535,7 +535,7 @@ body.project-screen-active .side-number {
 .option-svg {
   cursor: pointer;
   outline: none;
-  pointer-events: none;
+  pointer-events: auto;
   transform-origin: 25% center;
   transition: transform 0.15s ease-out;
   overflow: visible;
@@ -1309,14 +1309,15 @@ body.project-screen-active .side-number {
 
 /* Bottom Right HUD: Controls matching Menu Utama */
 .slink-bottom-hud {
-  position: absolute;
-  right: 2.5rem;
-  bottom: 2rem;
+  position: fixed;
+  right: 3vw;
+  bottom: 3.5vh;
+  left: auto;
   pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  z-index: 25;
+  z-index: 50;
 }
 
 .slink-hud-btn {
@@ -2091,13 +2092,17 @@ body.about-screen-active .character-viewport {
   font-weight: 500 !important;
 }
 
-/* Bottom Left HUD: ESC Close Button moved to Bottom-Left Corner per user request */
+/* Bottom Right HUD: ESC Close Button placed on the bottom-right corner matching ATLUS HUD */
 .p3r-contact-bottom-hud {
   position: fixed;
   bottom: 3.5vh;
-  left: 3vw;
-  z-index: 30;
+  right: 3vw;
+  left: auto;
+  z-index: 50;
   pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 /* Hide phone pad while circle transition is still expanding */
