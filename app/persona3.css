@@ -160,7 +160,7 @@ body.project-screen-active .side-number {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #001233;
+  background: #001233 url("/assets/posters/bg-loop.webp") no-repeat left bottom / cover;
 }
 
 /* --------------------------------------------------------------------------
@@ -913,6 +913,26 @@ body.project-screen-active .side-number {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  background-color: #001233;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+#project-page .slink-video-container {
+  background-image: url("/assets/posters/skills-bg.webp");
+}
+
+#skill-page .slink-video-container {
+  background-image: url("/assets/posters/makoto-wallpaper.webp");
+}
+
+#about-page .slink-video-container {
+  background-image: url("/assets/posters/about-bg.webp");
+}
+
+#contact-page .slink-video-container {
+  background-image: url("/assets/posters/contact-bg.webp");
 }
 
 .slink-bg-video {

@@ -508,16 +508,19 @@ export default function Persona3Portfolio() {
           id="background-video-intro"
           className="background-video bg-video-intro"
           src="/assets/bg-intro.mp4"
+          poster="/assets/posters/bg-loop.webp"
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
           onEnded={handleIntroVideoEnded}
+          onError={handleIntroVideoEnded}
         ></video>
         <video
           ref={loopVideoRef}
           id="background-video-loop"
           className="background-video bg-video-loop"
           src="/assets/bg-loop.mp4"
+          poster="/assets/posters/bg-loop.webp"
           loop
           muted
           playsInline
@@ -685,10 +688,11 @@ export default function Persona3Portfolio() {
             ref={projectVideoRef}
             id="slink-bg-video"
             className="slink-bg-video"
+            poster="/assets/posters/skills-bg.webp"
             loop
             muted
             playsInline
-            preload="none"
+            preload="auto"
           >
             <source src="/assets/skills-bg.mp4" type="video/mp4" />
           </video>
@@ -804,10 +808,11 @@ export default function Persona3Portfolio() {
             ref={skillVideoRef}
             id="skill-bg-video"
             className="slink-bg-video"
+            poster="/assets/posters/makoto-wallpaper.webp"
             loop
             muted
             playsInline
-            preload="none"
+            preload="auto"
           >
             <source src="/assets/makoto-wallpaper.mp4" type="video/mp4" />
           </video>
@@ -960,10 +965,11 @@ export default function Persona3Portfolio() {
             ref={aboutVideoRef}
             id="about-bg-video"
             className="slink-bg-video"
+            poster="/assets/posters/about-bg.webp"
             loop
             muted
             playsInline
-            preload="none"
+            preload="auto"
           >
             <source src="/assets/about-bg.mp4" type="video/mp4" />
           </video>
@@ -1063,10 +1069,11 @@ export default function Persona3Portfolio() {
             ref={contactVideoRef}
             id="contact-bg-video"
             className="slink-bg-video"
+            poster="/assets/posters/contact-bg.webp"
             loop
             muted
             playsInline
-            preload="none"
+            preload="auto"
           >
             <source src="/assets/contact-bg.mp4" type="video/mp4" />
           </video>

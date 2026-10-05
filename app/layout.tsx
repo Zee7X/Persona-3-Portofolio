@@ -43,6 +43,12 @@ export default function RootLayout({
       <head>
         <link
           rel="preload"
+          href="/assets/posters/bg-loop.webp"
+          as="image"
+          type="image/webp"
+        />
+        <link
+          rel="preload"
           href="/fonts/Rodin Pro EB.otf"
           as="font"
           type="font/otf"
