@@ -113,6 +113,15 @@ export default function Persona3Portfolio() {
       loopVideoRef.current.muted = true;
       loopVideoRef.current.play().catch(() => {});
     }
+
+    // Stagger-preload submenu videos while user is on main menu so they're
+    // buffered and start instantly when opened (no visual delay on entry)
+    const subVideos = [projectVideoRef, skillVideoRef, aboutVideoRef, contactVideoRef];
+    subVideos.forEach((ref, i) => {
+      setTimeout(() => {
+        if (ref.current) ref.current.load();
+      }, 800 + i * 400);
+    });
   }, [isStarted]);
 
   // Once loading completes, any pointerdown starts the portfolio with full autoplay clearance
