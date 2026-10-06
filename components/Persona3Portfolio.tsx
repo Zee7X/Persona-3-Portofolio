@@ -50,7 +50,8 @@ export default function Persona3Portfolio() {
   const [currentSkillTab, setCurrentSkillTab] = useState("backend");
   const [selectedContactIndex, setSelectedContactIndex] = useState(0);
 
-  // Video Refs (Only loop video on main screen to maximize performance)
+  // Video Refs
+  const introVideoRef = useRef<HTMLVideoElement | null>(null);
   const loopVideoRef = useRef<HTMLVideoElement | null>(null);
   const projectVideoRef = useRef<HTMLVideoElement | null>(null);
   const skillVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -65,6 +66,27 @@ export default function Persona3Portfolio() {
 
   // Track transition state
   const isTransitioningRef = useRef(false);
+  const hasSwitchedToLoopRef = useRef(false);
+
+  // Transition smoothly from sinking intro video to calm floating loop
+  const transitionToLoop = useCallback(() => {
+    if (hasSwitchedToLoopRef.current) return;
+    hasSwitchedToLoopRef.current = true;
+
+    if (loopVideoRef.current) {
+      loopVideoRef.current.play().catch(() => {});
+    }
+
+    if (introVideoRef.current) {
+      introVideoRef.current.classList.add("fade-out");
+      setTimeout(() => {
+        if (introVideoRef.current) {
+          introVideoRef.current.style.display = "none";
+          introVideoRef.current.pause();
+        }
+      }, 500);
+    }
+  }, []);
 
   // --------------------------------------------------------------------------
   // Loading Progress Sequence & BGM Subscription
@@ -108,21 +130,27 @@ export default function Persona3Portfolio() {
     playMenuUtamaSFX(true);
     playBGM(0.20);
 
-    if (loopVideoRef.current) {
-      loopVideoRef.current.currentTime = 0;
-      loopVideoRef.current.muted = true;
-      loopVideoRef.current.play().catch(() => {});
+    // Play intro sinking video from start concurrently with menu opening
+    if (introVideoRef.current) {
+      introVideoRef.current.currentTime = 0;
+      introVideoRef.current.muted = true;
+      introVideoRef.current.play().catch(() => {
+        transitionToLoop();
+      });
+      // Safety fallback timer so it never stays stuck
+      setTimeout(transitionToLoop, 6800);
+    } else {
+      transitionToLoop();
     }
 
-    // Stagger-preload submenu videos while user is on main menu so they're
-    // buffered and start instantly when opened (no visual delay on entry)
+    // Stagger-preload submenu videos while user is on main menu
     const subVideos = [projectVideoRef, skillVideoRef, aboutVideoRef, contactVideoRef];
     subVideos.forEach((ref, i) => {
       setTimeout(() => {
         if (ref.current) ref.current.load();
-      }, 800 + i * 400);
+      }, 1000 + i * 400);
     });
-  }, [isStarted]);
+  }, [isStarted, transitionToLoop]);
 
   // Once loading completes, any pointerdown starts the portfolio with full autoplay clearance
   useEffect(() => {
@@ -190,9 +218,13 @@ export default function Persona3Portfolio() {
       setSelectedContactIndex(0);
     }
 
-    // Pause main background loop to save GPU
+    // Pause main background videos to save GPU
     if (loopVideoRef.current && !loopVideoRef.current.paused) {
       loopVideoRef.current.pause();
+    }
+    if (introVideoRef.current && !introVideoRef.current.paused) {
+      introVideoRef.current.pause();
+      transitionToLoop();
     }
 
     const origin = getClickOrigin(e);
@@ -511,7 +543,24 @@ export default function Persona3Portfolio() {
       <main className="p3r-main">
         <div className="p3r-global-vignette" aria-hidden="true"></div>
 
-        {/* Main Background Video Loop */}
+        {/* Main Background Video (Intro Sinking & Seamless Loop) */}
+        <video
+          ref={introVideoRef}
+          id="background-video-intro"
+          className="background-video bg-video-intro"
+          src="/assets/bg-intro.mp4"
+          poster="/assets/posters/bg-loop.webp"
+          muted
+          playsInline
+          preload="auto"
+          onTimeUpdate={(e) => {
+            if (e.currentTarget.currentTime >= 6.1) {
+              transitionToLoop();
+            }
+          }}
+          onEnded={transitionToLoop}
+          onError={transitionToLoop}
+        ></video>
         <video
           ref={loopVideoRef}
           id="background-video-loop"
